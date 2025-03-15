@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:13-bullseye
+    restart: always
+    environment:
+      POSTGRES_USER: pg_user
+      POSTGRES_PASSWORD: pg_password
+      POSTGRES_DB: pg_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  fastapi:
+    build: ./FastApi
+    container_name: fastapi_app
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql://pg_user:pg_password@db:5432/pg_db
+    volumes:
+      - .:/app
+
+
+
