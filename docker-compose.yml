@@ -18,7 +18,8 @@ services:
       - "8001:8000"
     environment:
       DATABASE_URL: postgresql://pguser:pgpassword@db:5433/pgdb
-
+    volumes:
+      - ./fastapi/app:/app/app
 volumes:
   pgdata:
 
