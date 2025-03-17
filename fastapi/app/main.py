@@ -6,11 +6,8 @@ from fastapi import FastAPI
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.pool = await psycopg_pool.AsyncConnectionPool.connect(
-            host="postgres",
-            dbname="pgdb",
-            user="pguser",
-            password="pgpassword",
+    app.state.pool = psycopg_pool.AsyncConnectionPool(
+            "host=postgres dbname=pgdb user=pguser password=pgpassword",
             min_size=5,
             max_size=20
     )
@@ -27,16 +24,18 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/items")
 async def read_root():
-    async with app.state.pool.cursor() as cursor:
-        await cursor.execute("INSERT INTO items (name, description) VALUES (%s, %s)", ("matt", "larnak"))
-        await app.state.db.commit()
+    async with app.state.pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("INSERT INTO items (name, description) VALUES (%s, %s)", ("matt", "larnak"))
+            await conn.commit()
         return {"success": True}
 
 @app.get("/items")
 async def get_all_items():
-    async with app.state.pool.cursor() as cursor:
-        await cursor.execute("SELECT * FROM items")
-        items = await cursor.fetchall()
+    async with app.state.pool.connection() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT * FROM items")
+            items = await cur.fetchall()
         return {"items": items}
 
 
